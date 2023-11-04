@@ -1,0 +1,218 @@
+const TelegramApi = require('node-telegram-bot-api')
+// const {gameOptions, againOptions} = require('./options')
+// const sequelize = require('./db');
+// const UserModel = require('./models');
+
+const token = '5971034672:AAF1yrc_2IZjjOyqbfjalyD6wBlAsoF7RsA'
+const webAppUrl = 'https://labirintlc.uz/'
+const webAppTestUrl = 'https://labirintlc.uz/test'
+const bot = new TelegramApi(token, {polling: true})
+
+const keyboard = require('./keyboard')
+const kb = require('./keyboard-buttons')
+
+// const chats = {}
+
+
+// const startGame = async (chatId) => {
+//     await bot.sendMessage(chatId, `Сейчас я загадаю цифру от 0 до 9, а ты должен ее угадать!`);
+//     const randomNumber = Math.floor(Math.random() * 10)
+//     chats[chatId] = randomNumber;
+//     await bot.sendMessage(chatId, 'Отгадывай', gameOptions);
+// }
+
+const start = async () => {
+    try {
+        await sequelize.authenticate()
+        await sequelize.sync()
+    } catch (e) {
+        console.log('Подключение к бд сломалось', e)
+    }
+
+    bot.setMyCommands([
+        {command: '/start', description: 'Main menu'},
+        {command: '/help', description: 'Help'},
+        // {command: '/Royxatdan otish', description: "Получить информацию о пользователе"},
+        // {command: '/game', description: 'Игра угадай цифру'},
+    ])
+
+    bot.on('message', async msg => {
+        const text = msg.text;
+        const chatId = msg.chat.id;
+        // const sticker = await bot.downloadFile(msg.sticker.file_id, tmp);
+        let pass = await bot.getChatMember('@lesscodeacademy', chatId)
+
+        switch (msg.text) {
+            case kb.home.subscribe:
+                bot.sendMessage(chatId, 'Оплатит онлайн', {
+                    reply_markup: {keyboard: keyboard.pay}
+                })
+                break;
+            case kb.home.payment:
+                break;
+            case kb.home.cinemas:
+                break;
+            case kb.back:
+                bot.sendMessage(chatId, 'Чем могу помоч?', {
+                    reply_markup: {keyboard: keyboard.home}
+                })
+                break;
+        }
+        // Создание Telegram бота на Node.js / #36 - Вывод списка фильмов
+
+
+
+        
+        try {
+            if (pass.status === 'left' || pass.status === 'creator') {
+                await bot.sendMessage(chatId, 'Kanalga azo bolishingiz mumkin')
+            } else if (pass.status === 'member') {
+                await bot.sendMessage(chatId, 'Omadlik foydalanuvchi')
+            }
+
+            if (text === '/start') {
+                // await UserModel.create({chatId})
+                await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/5f4/4e6/5f44e699-2d40-4836-a9ea-24b7d6f68476/8.webp')
+                await bot.sendMessage(chatId, `Assalomu Alaykum ! ${msg.from.first_name} CryptoSalam telegram bo'tiga hush kelibsiz!`);
+                await bot.sendMessage(chatId, 'Komandalardan \n birini tanlang', {
+                    reply_markup: {
+                        inline_keyboard: [
+                            [
+                                {
+                                    text: 'Проверить подписку', web_app: {url: webAppTestUrl}
+                                }
+                            ],
+                            [
+                                {
+                                    text: 'Оплатить подписку', callback_data: 'test'
+                                }
+                            ],
+                            [
+                                {
+                                    text: "hi bro",
+                                    url: 'https://core.telegram.org/bots/api#inlinekeyboardbutton' // you must use exactly one of the optional fields.
+                                }
+                            ],
+                        ]
+                    }
+                })
+
+                // bot.answerCallbackQuery() Alert chiqarib beradi
+
+                // await bot.sendMessage(chatId, '', {
+                //     reply_markup: {
+                //         inline_keyboard: [
+                //             [{text: 'Forma', web_app: {url: webAppTestUrl}}]
+                //         ]
+                //     }
+                // })
+            }
+            if (text === "/help") {
+                // const user = await UserModel.findOne({chatId})
+                await bot.sendMessage(chatId, "Siz bilan aloqaga chiqishimiz uchun barcha ma'lumotlarni to'g'ri va aniq kiritishingiz so'raymiz. Anketada ko'rsatilgan ma'lumotlar bo'yicha jamoamiz sizga o'z taklifini beradi.");
+                return setTimeout(function() {
+                     bot.sendMessage(chatId, `Ism Familyangizni kiriting.`);
+                }, 1500)
+            }
+            // if (text === '/game') {
+            //     console.log('Game');
+            //     return startGame(chatId);
+            // }
+            return bot.sendMessage(chatId, 'Я тебя не понимаю, попробуй еще раз!)');
+        } catch (e) {
+            return bot.sendMessage(chatId, 'Произошла какая то ошибочка!)');
+        }
+
+    })
+
+    bot.on('callback_query', async msg => {
+        if (msg.data === 'test') {
+            bot.editMessageText(`<b>Hello Sasha</b>`, {message_id: msg.message.message_id, chat_id: msg.message.chat.id})
+            bot.editMessageReplyMarkup({
+                inline_keyboard: [
+                    [
+                        {
+                            text: 'Назад', callback_data: 'home'
+                        }
+                    ],
+                    [
+                        {
+                            text: 'Назад', callback_data: 'home'
+                        }
+                    ],
+                ]                
+            }, {message_id: msg.message.message_id, chat_id: msg.message.chat.id})
+        }
+        if (msg.data === 'home') {
+            bot.editMessageReplyMarkup({
+                inline_keyboard: [
+                    [
+                        {
+                            text: 'Проверить подписку', web_app: {url: webAppTestUrl}
+                        }
+                    ],
+                    [
+                        {
+                            text: 'Оплатить подписку', callback_data: 'test'
+                        }
+                    ],
+                    [
+                        {
+                            text: "hi bro",
+                            url: 'https://core.telegram.org/bots/api#inlinekeyboardbutton' // you must use exactly one of the optional fields.
+                        }
+                    ],
+                ]                
+            }, {message_id: msg.message.message_id, chat_id: msg.message.chat.id})
+            
+        }
+        console.log(msg);
+    })
+
+    // bot.on('callback_query', async msg => {
+    //     const data = msg.data;
+    //     const chatId = msg.message.chat.id;
+    //     if (data === '/again') {
+    //         return startGame(chatId)
+    //     }
+    //     const user = await UserModel.findOne({chatId})
+    //     if (data == chats[chatId]) {
+    //         user.right += 1;
+    //         await bot.sendMessage(chatId, `Поздравляю, ты отгадал цифру ${chats[chatId]}`, againOptions);
+    //     } else {
+    //         user.wrong += 1;
+    //         await bot.sendMessage(chatId, `К сожалению ты не угадал, бот загадал цифру ${chats[chatId]}`, againOptions);
+    //     }
+    //     await user.save();
+    // })
+}
+
+start()
+
+
+
+
+
+
+// bot.on('message', async (msg) => {
+//     const chatId = msg.chat.id
+//     const text = msg.text
+
+//     if (text === '/start') {
+//         await bot.sendMessage(chatId, 'Formani toldiring', {
+//             reply_markup: {
+//                 keyboard: [
+//                     [{text: 'Forma', web_app: {url: webAppTestUrl}}]
+//                 ]
+//             }
+//         })
+
+//         await bot.sendMessage(chatId, 'Web sahifaga otish', {
+//             reply_markup: {
+//                 inline_keyboard: [
+//                     [{text: 'Web sayt', web_app: {url: webAppUrl}}]
+//                 ]
+//             }
+//         })
+//     }
+// })

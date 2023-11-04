@@ -1,0 +1,64 @@
+const start = async () => {
+    try {
+        await sequelize.authenticate()
+        await sequelize.sync()
+    } catch (e) {
+        console.log('Подключение к бд сломалось', e)
+    }
+
+    bot.setMyCommands([
+        {command: '/start', description: 'Main menu'},
+        {command: '/help', description: 'Help'},
+        // {command: '/Royxatdan otish', description: "Получить информацию о пользователе"},
+        // {command: '/game', description: 'Игра угадай цифру'},
+    ])
+
+    bot.on('message', async msg => {
+        const text = msg.text;
+        const chatId = msg.chat.id;
+        // const sticker = await bot.downloadFile(msg.sticker.file_id, tmp);
+
+        try {
+            if (text === '/start') {
+                // await UserModel.create({chatId})
+                await bot.sendSticker(chatId, 'https://tlgrm.ru/_/stickers/ea5/382/ea53826d-c192-376a-b766-e5abc535f1c9/7.webp')
+                await bot.sendMessage(chatId, `Assalomu Alaykum ! ${msg.from.first_name} LABIRINT Learning Center HR botiga hush kelibsiz!`);
+                return bot.sendMessage(chatId, `Agar anketani birinchi marotaba to'ldirayotgan bo'lsangiz, Info kno'pkasini bosing`);
+            }
+            if (text === "/help") {
+                // const user = await UserModel.findOne({chatId})
+                await bot.sendMessage(chatId, "Siz bilan aloqaga chiqishimiz uchun barcha ma'lumotlarni to'g'ri va aniq kiritishingiz so'raymiz. Anketada ko'rsatilgan ma'lumotlar bo'yicha jamoamiz sizga o'z taklifini beradi.");
+                return setTimeout(function() {
+                     bot.sendMessage(chatId, `Ism Familyangizni kiriting.`);
+                }, 1500)
+            }
+            // if (text === '/game') {
+            //     console.log('Game');
+            //     return startGame(chatId);
+            // }
+            return bot.sendMessage(chatId, 'Я тебя не понимаю, попробуй еще раз!)');
+        } catch (e) {
+            return bot.sendMessage(chatId, 'Произошла какая то ошибочка!)');
+        }
+
+    })
+
+    // bot.on('callback_query', async msg => {
+    //     const data = msg.data;
+    //     const chatId = msg.message.chat.id;
+    //     if (data === '/again') {
+    //         return startGame(chatId)
+    //     }
+    //     const user = await UserModel.findOne({chatId})
+    //     if (data == chats[chatId]) {
+    //         user.right += 1;
+    //         await bot.sendMessage(chatId, `Поздравляю, ты отгадал цифру ${chats[chatId]}`, againOptions);
+    //     } else {
+    //         user.wrong += 1;
+    //         await bot.sendMessage(chatId, `К сожалению ты не угадал, бот загадал цифру ${chats[chatId]}`, againOptions);
+    //     }
+    //     await user.save();
+    // })
+}
+
+start()
